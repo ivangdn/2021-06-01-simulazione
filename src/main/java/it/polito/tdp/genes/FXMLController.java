@@ -5,9 +5,12 @@
 package it.polito.tdp.genes;
 
 import java.net.URL;
+import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 import it.polito.tdp.genes.model.Genes;
+import it.polito.tdp.genes.model.Interaction;
 import it.polito.tdp.genes.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -30,7 +33,7 @@ public class FXMLController {
     private Button btnCreaGrafo; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbGeni"
-    private ComboBox<?> cmbGeni; // Value injected by FXMLLoader
+    private ComboBox<Genes> cmbGeni; // Value injected by FXMLLoader
 
     @FXML // fx:id="btnGeniAdiacenti"
     private Button btnGeniAdiacenti; // Value injected by FXMLLoader
@@ -46,19 +49,56 @@ public class FXMLController {
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
+    	txtResult.clear();
+    	model.creaGrafo();
+    	txtResult.appendText("Grafo creato con "+model.nVertici()+" vertici e "+model.nArchi()+" archi");
     	
-
+    	cmbGeni.getItems().clear();
+    	cmbGeni.getItems().addAll(model.getVertici());
     }
 
     @FXML
     void doGeniAdiacenti(ActionEvent event) {
-
+    	txtResult.clear();
+    	Genes g = cmbGeni.getValue();
+    	if(g==null) {
+    		txtResult.setText("Selezionare un gene");
+    		return;
+    	}
     	
+    	List<Interaction> adiacenti = model.geniAdiacenti(g);
+    	txtResult.appendText("Adiacenti a: "+g+"\n");
+    	for(Interaction i : adiacenti) {
+    		txtResult.appendText(i.getG2()+" "+i.getExpressionCorr()+"\n");
+    	}
     }
 
     @FXML
     void doSimula(ActionEvent event) {
-
+    	txtResult.clear();
+    	Genes g = cmbGeni.getValue();
+    	if(g==null) {
+    		txtResult.setText("Selezionare un gene");
+    		return;
+    	}
+    	
+    	int N;
+    	try {
+    		N = Integer.parseInt(txtIng.getText());
+    	} catch(NumberFormatException e) {
+    		txtResult.setText("Inserire un numero di ingegneri valido");
+    		return;
+    	}
+    	
+    	Map<Genes, Integer> mapGeniIng = model.simula(N, g);
+    	if(mapGeniIng==null) {
+    		txtResult.appendText("ERRORE! Il gene selezionato è isolato");
+    	} else {
+    		for(Genes gene : mapGeniIng.keySet()) {
+    			txtResult.appendText(gene+" "+mapGeniIng.get(gene)+"\n");
+    		}
+    	}
+    	
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
